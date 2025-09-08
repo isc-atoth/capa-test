@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interactive Practice Test</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #131936;
+      --ink: #e9ecf1;
+      --muted: #9aa3b2;
+      --accent: #6aa3ff;
+      --good: #28c76f;
+      --bad: #ff4d4f;
+    }
+    *{box-sizing:border-box}
+    body {font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; margin:0; color:var(--ink); background: radial-gradient(1200px 800px at 80% -20%, #1b2452, var(--bg));}
+    .wrap {max-width: 980px; margin: auto; padding: 24px;}
+    header {display:flex; align-items:center; gap:12px; justify-content:space-between; margin-bottom:16px}
+    .brand {font-weight:700; letter-spacing:.2px}
+    .card {background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.06); border-radius:16px; box-shadow: 0 10px 30px rgba(0,0,0,.3);}
+    .question {padding:20px}
+    .q-head {display:flex; gap:16px; align-items:flex-start}
+    .q-media {flex:0 0 auto; max-width:44%;}
+    .q-media img{width:100%; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,.08)}
+    .q-text {flex:1 1 auto; font-size:1.1rem; line-height:1.5}
+    .options {padding: 12px 20px 8px 20px; display:grid; gap:10px}
+    .opt {display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border:1px solid rgba(255,255,255,.08); border-radius:12px; background: rgba(255,255,255,.02)}
+    .opt label{cursor:pointer; user-select:none}
+    .opt.correct {outline:2px solid var(--good)}
+    .opt.incorrect {outline:2px solid var(--bad)}
+    .opt .tag {font-size:.72rem; color:var(--muted)}
+    .controls {display:flex; gap:10px; flex-wrap:wrap; padding:14px 20px 20px 20px}
+    button {background: linear-gradient(180deg, #1a3a7a, #112a5a); border:1px solid rgba(255,255,255,.12); color:#fff; padding:10px 14px; border-radius:10px; cursor:pointer}
+    button.secondary{background: #182044}
+    button.ghost{background: transparent; border-color: rgba(255,255,255,.2)}
+    button:disabled{opacity:.5; cursor:not-allowed}
+    .meta{display:flex; gap:14px; align-items:center; color:var(--muted); font-size:.92rem}
+    .pill{background:#1a2146; border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:999px}
+    .progress{height:8px; background:#12162f; border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,.08)}
+    .progress>span{display:block; height:100%; width:0%; background: linear-gradient(90deg, #4d7cff, #7acbff)}
+    .footer{display:flex; justify-content:space-between; padding:16px 20px; border-top:1px solid rgba(255,255,255,.06); color:var(--muted)}
+    .explain{padding: 0 20px 14px 20px; color: var(--muted)}
+    .hint{font-style:italic}
+    .layout {display:grid; gap:16px}
+    @media (min-width: 900px){ .layout{grid-template-columns: 1fr 300px} }
+    aside {position:sticky; top:16px}
+    .list {padding:12px; display:grid; gap:8px}
+    .list a{display:flex; gap:10px; text-decoration:none; color:#d9e6ff; background: rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); padding:8px 10px; border-radius:10px}
+    .list a.active{outline:2px solid var(--accent)}
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#12162f; border:1px solid rgba(255,255,255,.12); border-radius:6px; padding:2px 6px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">Practice Test</div>
+      <div class="meta">
+        <div class="pill" id="mode-pill">Single question mode</div>
+        <div style="min-width:220px">
+          <div class="progress"><span id="bar"></span></div>
+        </div>
+        <div id="counter" class="pill">1 / 1</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <main id="main"></main>
+      <aside class="card">
+        <div class="list" id="nav"></div>
+        <div style="padding:10px 12px; color:var(--muted); font-size:.9rem; border-top:1px solid rgba(255,255,255,.06)">
+          Shortcuts: <span class="kbd">←/→</span> prev/next, <span class="kbd">1..9</span> choose, <span class="kbd">Enter</span> check.
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <template id="qtpl">
+    <section class="card">
+      <div class="question">
+        <div class="q-head">
+          <div class="q-media" data-if="image"><img data-bind="image" alt="Question image"/></div>
+          <div class="q-text" data-bind="text"></div>
+        </div>
+      </div>
+      <div class="options" data-options></div>
+      <div class="explain" data-if="explanation"><strong>Why:</strong> <span data-bind="explanation"></span></div>
+      <div class="controls">
+        <button id="check">Check answer</button>
+        <button id="show" class="secondary">Reveal</button>
+        <span style="flex:1 1 auto"></span>
+        <button id="prev" class="ghost">← Prev</button>
+        <button id="next">Next →</button>
+        <button id="rand" class="ghost">🎲 Random</button>
+      </div>
+      <div class="footer">
+        <div>Type: <span id="qtype"></span></div>
+        <div>Score: <span id="score"></span></div>
+      </div>
+    </section>
+  </template>
+
+  <script>
+  // ======== 1) Put your parsed questions here or load questions.json ========
+  // Schema:
+  // {
+  //   id: "Q1", text: "Question text...", image: "optional-url-or-base64", type: "single"|"multiple",
+  //   options: [ { id:"A", text:"Option text...", correct: true|false }, ...],
+  //   explanation: "Optional explanation shown after checking"
+  // }
+  
+ const QUESTIONS = [];
+ Promise.all([
+   fetch('./data/questions.json').then(r => r.json()),
+   fetch('./data/images.json').then(r => r.json())
+ ]).then(([questions, images]) => {
+   questions.forEach((q, i) => {
+     if (images[i]) {
+       q.image = images[i];
+     }
+   });
+   QUESTIONS.splice(0, QUESTIONS.length, ...questions);
+   init();
+ });
+ 
+ 
+  // ======== 2) UI Logic ========
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  let idx = 0;
+  // let order = [...Array(QUESTIONS.length).keys()].sort(() => Math.random() - 0.5);
+  let scoreLog = new Map(); // qid -> {correct:boolean, chosen:Set}
+
+  function renderNav(){
+    const nav = $('#nav');
+    nav.innerHTML = '';
+    /*
+    order.forEach((qi, pos)=>{
+      const q = QUESTIONS[qi];
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = `${pos+1}. ${q.id || ''}`.trim();
+      a.onclick = (e)=>{ e.preventDefault(); go(pos); };
+      if(pos===idx) a.classList.add('active');
+      if(scoreLog.get(q.id)?.correct === true){ a.style.borderColor = 'rgba(40,199,111,.8)'; }
+      if(scoreLog.get(q.id)?.correct === false){ a.style.borderColor = 'rgba(255,77,79,.8)'; }
+      nav.appendChild(a);
+    });
+    */
+  
+    QUESTIONS.forEach((q,i)=>{
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = `${i+1}. ${q.id || ''}`.trim();
+      a.onclick = (e)=>{ e.preventDefault(); go(i); };
+      if(i===idx) a.classList.add('active');
+      if(scoreLog.get(q.id)?.correct === true){ a.style.borderColor = 'rgba(40,199,111,.8)'; }
+      if(scoreLog.get(q.id)?.correct === false){ a.style.borderColor = 'rgba(255,77,79,.8)'; }
+      nav.appendChild(a);
+    });
+    
+  }
+
+  function render(){
+    const q = QUESTIONS[idx];
+    $('#counter').textContent = `${idx+1} / ${QUESTIONS.length}`;
+    $('#bar').style.width = `${((idx+1)/QUESTIONS.length)*100}%`;
+    const tpl = $('#qtpl').content.cloneNode(true);
+
+    $('[data-bind="text"]', tpl).textContent = q.text;
+
+    const hasImg = !!q.image;
+    const imgWrap = $('[data-if="image"]', tpl);
+    
+    if(hasImg){
+      imgWrap.style.display = '';
+      $('[data-bind="image"]', tpl).src = q.image;
+    } else {
+      imgWrap.style.display = 'none';
+    }
+
+    const exp = $('[data-if="explanation"]', tpl);
+    if(q.explanation){
+      exp.style.display = '';
+      $('[data-bind="explanation"]', tpl).textContent = q.explanation;
+      exp.style.display = 'none'; // hidden until check/reveal
+    } else {
+      exp.style.display = 'none';
+    }
+
+    $('#qtype', tpl).textContent = q.type === 'multiple' ? 'Multiple choice' : 'Single choice';
+
+    const opts = $('[data-options]', tpl);
+    opts.innerHTML = '';
+    const isMulti = q.type === 'multiple';
+    q.options.forEach((o, k) => {
+      const id = `opt-${q.id}-${o.id}`;
+      const row = document.createElement('div');
+      row.className = 'opt';
+      row.dataset.optid = o.id;
+      row.innerHTML = `
+        <input id="${id}" name="opts" type="${isMulti?'checkbox':'radio'}" />
+        <label for="${id}">${o.text}</label>
+        <span class="tag" style="margin-left:auto">${o.id}</span>
+      `;
+      opts.appendChild(row);
+    });
+
+    const main = $('#main');
+    main.innerHTML = '';
+    main.appendChild(tpl);
+
+    $('#prev').onclick = ()=> go(Math.max(0, idx-1));
+    $('#next').onclick = ()=> go(Math.min(QUESTIONS.length-1, idx+1));
+    $('#rand').onclick = ()=> go(Math.floor(Math.random() * QUESTIONS.length));
+
+    $('#check').onclick = ()=> check(false);
+    $('#show').onclick = ()=> check(true);
+
+    renderNav();
+    updateScoreFooter();
+  }
+
+  function getChosen(){
+    const chosen = new Set();
+    $$('.options .opt').forEach(row=>{
+      const input = $('input', row);
+      if(input.checked) chosen.add(row.dataset.optid);
+    });
+    return chosen;
+  }
+
+  function check(reveal){
+    const q = QUESTIONS[idx];
+    const chosen = getChosen();
+    const correctSet = new Set(q.options.filter(o=>o.correct).map(o=>o.id));
+
+    // visual marks
+    $$('.options .opt').forEach(row=>{
+      row.classList.remove('correct','incorrect');
+      const id = row.dataset.optid;
+      const isCorrect = correctSet.has(id);
+      const isChosen = chosen.has(id);
+      if(reveal){
+        if(isCorrect) row.classList.add('correct');
+        else row.style.opacity = .6;
+      } else {
+        if(isChosen && isCorrect) row.classList.add('correct');
+        if(isChosen && !isCorrect) row.classList.add('incorrect');
+      }
+    });
+
+    const ok = sameSet(chosen, correctSet);
+    scoreLog.set(q.id, { correct: ok, chosen });
+
+    const exp = $('.explain');
+    if(exp) exp.style.display = '';
+
+    updateScoreFooter();
+    renderNav();
+  }
+
+  function sameSet(a,b){
+    if(a.size !== b.size) return false;
+    for(const v of a) if(!b.has(v)) return false;
+    return true;
+  }
+
+  function go(i){ idx = i; render(); }
+
+  function updateScoreFooter(){
+    const got = Array.from(scoreLog.values()).filter(v=>v.correct).length;
+    $('#score').textContent = `${got} / ${QUESTIONS.length}`;
+  }
+
+  // Random button handler
+  /*
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const rb = document.getElementById('rand');
+    if(rb){
+      rb.onclick = ()=>{
+        const rnd = Math.floor(Math.random() * QUESTIONS.length);
+        go(rnd);
+      };
+    }
+  });
+  */
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e =>{
+    const q = QUESTIONS[idx];
+    if(e.key === 'ArrowRight') go(Math.min(QUESTIONS.length-1, idx+1));
+    if(e.key === 'ArrowLeft') go(Math.max(0, idx-1));
+    if(e.key === 'Enter') check(false);
+    const n = parseInt(e.key,10);
+    if(!isNaN(n)){
+      // choose nth option
+      const rows = $$('.options .opt');
+      if(n>=1 && n<=rows.length){
+        const input = $('input', rows[n-1]);
+        input.checked = !input.checked || q.type!=='single';
+      }
+    }
+  });
+
+  function init(){
+    $('#mode-pill').textContent = 'Single question mode';
+    render();
+  }
+
+  // Boot
+  init();
+  </script>
+</body>
+</html>
