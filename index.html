@@ -32,6 +32,13 @@
     .opt.incorrect {outline:2px solid var(--bad)}
     .opt .tag {font-size:.72rem; color:var(--muted)}
     .controls {display:flex; gap:10px; flex-wrap:wrap; padding:14px 20px 20px 20px}
+    .order-list {list-style: none; padding: 0; margin: 0; display: grid; gap:10px}
+    .order-item {display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid rgba(255,255,255,.08); border-radius:12px; background: rgba(255,255,255,.02)}
+    .order-item[draggable="true"] {cursor:grab}
+    .order-item.dragging {opacity:.65; outline:2px dashed var(--accent)}
+    .order-index {min-width:2rem; text-align:center; font-weight:700; background:#1a2146; border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:4px 6px}
+    .order-item.correct {outline:2px solid var(--good)}
+    .order-item.incorrect {outline:2px solid var(--bad)}
     button {background: linear-gradient(180deg, #1a3a7a, #112a5a); border:1px solid rgba(255,255,255,.12); color:#fff; padding:10px 14px; border-radius:10px; cursor:pointer}
     button.secondary{background: #182044}
     button.ghost{background: transparent; border-color: rgba(255,255,255,.2)}
@@ -190,8 +197,15 @@
       exp.style.display = 'none';
     }
 
+    /*
     $('#qtype', tpl).textContent = q.type === 'multiple' ? 'Multiple choice' : 'Single choice';
+    */
+    $('#qtype', tpl).textContent = (
+      q.type === 'multiple' ? 'Multiple choice' :
+      q.type === 'order' ? 'Ordering (Reihung)' : 'Single choice'
+    );
 
+    /*
     const opts = $('[data-options]', tpl);
     opts.innerHTML = '';
     const isMulti = q.type === 'multiple';
@@ -207,6 +221,40 @@
       `;
       opts.appendChild(row);
     });
+    */
+
+    const opts = $('[data-options]', tpl);
+    opts.innerHTML = '';
+    if (q.type === 'order') {
+      // Render draggable list
+      const ul = document.createElement('ul');
+      ul.className = 'order-list';
+      q.options.forEach((o, i) => {
+        const li = document.createElement('li');
+        li.className = 'order-item';
+        li.setAttribute('draggable', 'true');
+        li.dataset.optid = o.id;
+        li.innerHTML = `<span class="order-index">${i+1}</span><span>${o.text}</span>`;
+        ul.appendChild(li);
+      });
+      opts.appendChild(ul);
+      enableDnd(ul);
+    } else {
+      // Regular single/multiple choice
+      const isMulti = q.type === 'multiple';
+      q.options.forEach((o) => {
+        const id = `opt-${q.id}-${o.id}`;
+        const row = document.createElement('div');
+        row.className = 'opt';
+        row.dataset.optid = o.id;
+        row.innerHTML = `
+          <input id="${id}" name="opts" type="${isMulti?'checkbox':'radio'}" />
+          <label for="${id}">${o.text}</label>
+          <span class="tag" style="margin-left:auto">${o.id}</span>
+        `;
+        opts.appendChild(row);
+      });
+    }
 
     const main = $('#main');
     main.innerHTML = '';
@@ -232,8 +280,41 @@
     return chosen;
   }
 
+  function getOrder(){
+    // Returns array of option ids in current visual order
+    const list = $('.order-list');
+    if(!list) return null;
+    return Array.from(list.querySelectorAll('.order-item')).map(li => li.dataset.optid);
+  }
+
   function check(reveal){
     const q = QUESTIONS[idx];
+    
+    /*
+    const chosen = getChosen();
+    const correctSet = new Set(q.options.filter(o=>o.correct).map(o=>o.id));
+    */
+
+    if (q.type === 'order') {
+      const orderNow = getOrder();
+      if (!Array.isArray(orderNow)) return;
+      // Expected solution: array of option ids in correct order
+      const sol = q.solution || [];
+      // visual marking
+      const lis = $$('.order-list .order-item');
+      lis.forEach(li => li.classList.remove('correct','incorrect'));
+      let allOk = true;
+      lis.forEach((li, i) => {
+        if (sol[i] && sol[i] === li.dataset.optid) li.classList.add('correct');
+        else { li.classList.add('incorrect'); allOk = false; }
+        // update visible index
+        li.querySelector('.order-index').textContent = (i+1);
+      });
+      scoreLog.set(q.id, { correct: allOk, order: orderNow });
+      const exp = $('.explain'); if (exp) exp.style.display = '';
+      updateScoreFooter(); renderNav(); return;
+    }
+    // regular single/multiple
     const chosen = getChosen();
     const correctSet = new Set(q.options.filter(o=>o.correct).map(o=>o.id));
 
@@ -262,6 +343,40 @@
     renderNav();
   }
 
+  function enableDnd(listEl){
+    let dragEl = null;
+    listEl.addEventListener('dragstart', e => {
+      const li = e.target.closest('.order-item');
+      if(!li) return;
+      dragEl = li;
+      li.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', li.dataset.optid);
+    });
+    listEl.addEventListener('dragend', e => {
+      const li = e.target.closest('.order-item');
+      if(li) li.classList.remove('dragging');
+      dragEl = null;
+      // refresh visible indices
+      Array.from(listEl.children).forEach((li, i)=> li.querySelector('.order-index').textContent = i+1);
+    });
+    listEl.addEventListener('dragover', e => {
+      e.preventDefault();
+      const after = getDragAfterElement(listEl, e.clientY);
+      if (after == null) listEl.appendChild(dragEl);
+      else listEl.insertBefore(dragEl, after);
+    });
+    function getDragAfterElement(container, y){
+      const els = [...container.querySelectorAll('.order-item:not(.dragging)')];
+      return els.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) return { offset, element: child };
+        else return closest;
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+  }
+
   function sameSet(a,b){
     if(a.size !== b.size) return false;
     for(const v of a) if(!b.has(v)) return false;
@@ -274,19 +389,6 @@
     const got = Array.from(scoreLog.values()).filter(v=>v.correct).length;
     $('#score').textContent = `${got} / ${QUESTIONS.length}`;
   }
-
-  // Random button handler
-  /*
-  document.addEventListener('DOMContentLoaded', ()=>{
-    const rb = document.getElementById('rand');
-    if(rb){
-      rb.onclick = ()=>{
-        const rnd = Math.floor(Math.random() * QUESTIONS.length);
-        go(rnd);
-      };
-    }
-  });
-  */
 
   // Keyboard shortcuts
   document.addEventListener('keydown', e =>{
