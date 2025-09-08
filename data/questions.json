@@ -266,15 +266,23 @@
   },
   {
     "id": "5414",
-    "text": "Ordnen Sie die Sicherheitshierarchie im Bezug der",
+    "text": "Ordnen Sie die Sicherheitshierarchie im Bezug der Türsteuerung!",
     "type": "order",
     "options": [
       {
         "id": "A",
-        "text": "Türsteuerung!",
-        "correct": false
+        "text": "Zentrale Türsteuerung"
+      },
+      {
+        "id": "B",
+        "text": "Seitenselektive Türsteuerung"
+      },
+      {
+        "id": "C",
+        "text": "Zentrale Schließeinrichtung (mittels \"Schaffnerschalter\") / fahrzeugautarke Türblockierung"
       }
-    ]
+    ],
+    "solution": [ "B", "A", "C" ]
   },
   {
     "id": "5455",
@@ -526,15 +534,27 @@
   },
   {
     "id": "175",
-    "text": "Wie ist vorzugehen, wenn eine Tz - Doppelgarnitur auf der freien Strecke liegenbleibt und die hintere Garnitur schadhaft ist? Reihen Sie die Tätigkeiten",
+    "text": "Wie ist vorzugehen, wenn eine Tz - Doppelgarnitur auf der freien Strecke liegenbleibt und die hintere Garnitur schadhaft ist? Reihen Sie die Tätigkeiten von der ersten bis zur letzten.",
     "type": "order",
     "options": [
       {
         "id": "A",
-        "text": "von der ersten bis zur letzten.",
-        "correct": false
+        "text": "Zug sichern"
+      },
+      {
+        "id": "B",
+        "text": "Durchsage tätigen: \"ACHTUNG! Betriebsaufenthalt! Von den Türen zurücktreten! NICHT aussteigen!\""
+      },
+      {
+        "id": "C",
+        "text": "Fehlersuche"
+      },
+      {
+        "id": "D",
+        "text": "Türen freigeben"
       }
-    ]
+    ],
+    "solution": [ "A", "B", "D", "C" ]
   },
   {
     "id": "600",
@@ -5681,7 +5701,29 @@
     "id": "1815",
     "text": "Sie erhalten während Ihrer Zugfahrt einen Fahrgastnotruf. Wie gehen Sie vor ?",
     "type": "order",
-    "options": []
+    "options": [
+      {
+        "id": "A",
+        "text": "Abhilfe schaffen ( Einsatzkräfte anfordern, Erste Hilfe,... )"
+      },      
+      {
+        "id": "B",
+        "text": "Anlass des Fahrgastnotrufes feststellen."
+      },      
+      {
+        "id": "C",
+        "text": "Anhalten in der nächsten Betriebsstelle mit Bahmsteig in Abstimmung mit dem FDL."
+      },      
+      {
+        "id": "D",
+        "text": "Annahme des Gespräches"
+      },      
+      {
+        "id": "E",
+        "text": "Weiterfahrt mit Zustimmung des FDL."
+      }     
+    ],
+    "solution": [ "D", "B", "C", "A", "E" ]
   },
   {
     "id": "4572",
@@ -9055,15 +9097,31 @@
   },
   {
     "id": "4880",
-    "text": "Legen sie die Reihenfolge vom Ausfallskonzept",
+    "text": "Legen sie die Reihenfolge vom Ausfallskonzept fest.",
     "type": "order",
     "options": [
       {
         "id": "A",
-        "text": "fest.",
-        "correct": false
+        "text": "ETD am Tablet mit A1 Internet."
+      },
+      {
+        "id": "B",
+        "text": "ETD am Tablet mit TIM Dataguard."
+      },
+      {
+        "id": "C",
+        "text": "Zug wählen aus lokaler Datenbank."
+      },
+      {
+        "id": "D",
+        "text": "Zug online laden."
+      },
+      {
+        "id": "E",
+        "text": "ETD am Handy."
       }
-    ]
+    ],
+    "solution": [ "C", "D", "B", "A", "E" ]
   },
   {
     "id": "5428",
@@ -9248,7 +9306,33 @@
     "id": "5416",
     "text": "Wie erfolgt die Überprüfung der Grünschleife?",
     "type": "order",
-    "options": []
+    "options": [
+      {
+        "id": "A",
+        "text": "Wgm/Zub kontrolliert, ob vom letzten benutzbaren Einstiegsbereich die Türen geöffnet bzw. bei nicht freigegebener Seite verriegelt bleibt"
+      },
+      {
+        "id": "B",
+        "text": "TFZF meldet dem Wgm/Zub \"Grünschleife tauglich\""
+      },
+      {
+        "id": "C",
+        "text": "Wgm/Zub schließt die Türen durch Schaffnerschalter und meldet dem Tfzf \"Tür geschlossen\""
+      },
+      {
+        "id": "D",
+        "text": "TFZF antwortet \"ÖBB-Türsteuerung ist aktiv, gelbe Meldelampe leuchtet\""
+      },
+      {
+        "id": "E",
+        "text": "Wgm/Zub meldet dem TFZF \"Seiten in Ordnung\""
+      },
+      {
+        "id": "F",
+        "text": "Wgm/Zub meldet dem TFZF \"ÖBB-Türsteuerung aktiv\""
+      }
+    ],
+    "solution": [ "F", "D", "C", "B", "A", "E" ]
   },
   {
     "id": "5140",
@@ -13567,15 +13651,27 @@
   },
   {
     "id": "5436",
-    "text": "Ein Güterzug ist mittels Handbremsen zu sichern.",
+    "text": "Ein Güterzug ist mittels Handbremsen zu sichern. Bringen Sie die erforderlichen Tätigkeiten in die richtige Reihenfolge.",
     "type": "order",
     "options": [
       {
         "id": "A",
-        "text": "Bringen Sie die erforderlichen Tätigkeiten in die richtige Reihenfolge.",
-        "correct": false
+        "text": "Die erforderlichen Handbremsen sind anzuziehen."
+      },
+      {
+        "id": "B",
+        "text": "Eine Vollbremsung ist durchzuführen."
+      },
+      {
+        "id": "C",
+        "text": "Die indirekte Bremse ist zu lösen."
+      },
+      {
+        "id": "D",
+        "text": "Der angelegte Zustand der Handbremsen ist zu überprüfen."
       }
-    ]
+    ],
+    "solution": [ "B", "A", "C", "D" ]
   },
   {
     "id": "2041",
